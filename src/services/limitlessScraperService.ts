@@ -49,7 +49,8 @@ async function getLimitlessTournaments(): Promise<Tournament[]> {
     }
 }
 
-// Testar oque acontece quando n_players é maior que o número de jogadores do torneio
+// Testar oque acontece quando n_players é maior que o número de jogadores do torneio ou decks vazios
+// Não inclui players sem decklist
 async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: number): Promise<TournamentPlayer[]> {
     try {
         const response = await axios.get(limitless_url + tournamentLink);
@@ -66,10 +67,11 @@ async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: 
                     place: parseInt(player_element.attr('data-rank') || '0', 10),
                     limitlessLink: player_element.find('td:nth-child(5) a').attr('href') || ''
                 }
-                players.push(player);
+                if (player.limitlessLink != '') {
+                    players.push(player);
+                }         
             }
         })
-
         console.log(players);
         return players;
     } catch (error) {
@@ -78,6 +80,6 @@ async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: 
     }
 }
 
-getLimitlessTournamentPlayers('/tournaments/542', 16);
+getLimitlessTournamentPlayers('/tournaments/547', 40);
 
 export { getLimitlessTournaments, getLimitlessTournamentPlayers };
