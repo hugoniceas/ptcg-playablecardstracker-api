@@ -3,6 +3,14 @@ import axios from 'axios';
 
 const limitless_url = "https://limitlesstcg.com";
 
+enum cardType {
+    Pokemon = 'Pokemon',
+    Trainer = 'Trainer',
+    Energy = 'Energy'
+}
+
+const cardTypesArray = Object.values(cardType);
+
 interface Tournament {
     name: string;
     date: string;
@@ -17,6 +25,19 @@ interface TournamentPlayer {
     limitlessLink: string;
 }
 
+interface DecklistCard {
+    name: string;
+    set: string;
+    setNumber: string;
+    quantity: number;
+    type: cardType;
+}
+
+interface Decklist {
+    deckName: string;
+    cards: DecklistCard[];
+}
+
 async function getLimitlessTournaments(): Promise<Tournament[]> {
     try {
         const response = await axios.get(limitless_url + '/tournaments');
@@ -29,7 +50,7 @@ async function getLimitlessTournaments(): Promise<Tournament[]> {
         $('table tbody tr:not(:first-child)').each((i, element) => {
             const tournament_element = $(element);
 
-            const tournament = {
+            const tournament: Tournament = {
                 name: tournament_element.attr('data-name') || '',
                 date: tournament_element.attr('data-date') || '',
                 format: tournament_element.attr('data-format') || '',
@@ -49,8 +70,7 @@ async function getLimitlessTournaments(): Promise<Tournament[]> {
     }
 }
 
-// Testar oque acontece quando n_players é maior que o número de jogadores do torneio ou decks vazios
-// Não inclui players sem decklist
+// Não inclui players sem decklist (decidir se deixar isso aqui mesmo ou no controller, visto que é logica de negócio)
 async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: number): Promise<TournamentPlayer[]> {
     try {
         const response = await axios.get(limitless_url + tournamentLink);
@@ -62,7 +82,7 @@ async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: 
             if (i < n_players) {
                 const player_element = $(element);
 
-                const player = {
+                const player: TournamentPlayer = {
                     name: player_element.attr('data-name') || '',
                     place: parseInt(player_element.attr('data-rank') || '0', 10),
                     limitlessLink: player_element.find('td:nth-child(5) a').attr('href') || ''
@@ -80,6 +100,42 @@ async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: 
     }
 }
 
-getLimitlessTournamentPlayers('/tournaments/547', 40);
+async function getLimitlessDecklist(decklistLink: string): Promise<Decklist> {
+    try {
+        const response = await axios.get(limitless_url + decklistLink);
+        const html = response.data;
+        const $ = cheerio.load(html);
 
-export { getLimitlessTournaments, getLimitlessTournamentPlayers };
+        const deckName = $('div.decklist-title').children().remove().end().text().trim();
+        const cards: DecklistCard[] = [];
+
+        $('div.decklist-cards.layout2 > div').each((column_i, decklistColumn) => {
+            $(decklistColumn).find('.decklist-card').each((i, element) => {
+                const card_element = $(element);
+
+                const card: DecklistCard = {
+                    name: card_element.find('span.card-name').text().trim(),
+                    set: card_element.attr('data-set') || '',
+                    setNumber: card_element.attr('data-number') || '',
+                    quantity: parseInt(card_element.find('span.card-count').text().trim(), 10),
+                    type: cardTypesArray[column_i] as cardType
+                }
+                cards.push(card);
+            })
+        })
+
+        const decklist: Decklist = {
+            deckName,
+            cards
+        }
+
+        console.log(decklist);
+        return decklist;
+        
+    } catch (error) {
+        console.error('Error fetching Limitless decklist:', error);
+        return { deckName: '', cards: [] };
+    }
+}
+
+export { getLimitlessTournaments, getLimitlessTournamentPlayers, getLimitlessDecklist };
