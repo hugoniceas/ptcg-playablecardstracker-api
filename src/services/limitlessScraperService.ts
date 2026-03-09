@@ -149,5 +149,24 @@ async function getLimitlessDecksFromTournament(tournamentLink: string, n_players
     }
 }
 
+async function getLimitlessDecksFromRecentTournaments(n_players: number): Promise<Decklist[]> {
+    try {
+        const tournaments = await getLimitlessTournaments();
+        const decklists: Decklist[] = [];
+        for (const tournament of tournaments) {
+            const tournamentDecklists = await getLimitlessDecksFromTournament(tournament.limitlessLink, n_players);
+            decklists.push(...tournamentDecklists);
+        }
+        return decklists;
+    } catch (error) {
+        console.error('Error fetching Limitless decks from recent tournaments:', error);
+        return [];
+    }
+}
 
-export { getLimitlessTournaments, getLimitlessTournamentPlayers, getLimitlessDecklist, getLimitlessDecksFromTournament };
+
+export { getLimitlessTournaments, 
+         getLimitlessTournamentPlayers, 
+         getLimitlessDecklist, 
+         getLimitlessDecksFromTournament, 
+         getLimitlessDecksFromRecentTournaments };
