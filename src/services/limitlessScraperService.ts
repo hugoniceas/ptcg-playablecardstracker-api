@@ -92,7 +92,6 @@ async function getLimitlessTournamentPlayers(tournamentLink: string, n_players: 
                 }         
             }
         })
-        console.log(players);
         return players;
     } catch (error) {
         console.error('Error fetching Limitless tournament players:', error);
@@ -109,7 +108,7 @@ async function getLimitlessDecklist(decklistLink: string): Promise<Decklist> {
         const deckName = $('div.decklist-title').children().remove().end().text().trim();
         const cards: DecklistCard[] = [];
 
-        $('div.decklist-cards.layout2 > div').each((column_i, decklistColumn) => {
+        $('div.decklist-cards > div').each((column_i, decklistColumn) => {
             $(decklistColumn).find('.decklist-card').each((i, element) => {
                 const card_element = $(element);
 
@@ -128,7 +127,6 @@ async function getLimitlessDecklist(decklistLink: string): Promise<Decklist> {
             deckName,
             cards
         }
-
         console.log(decklist);
         return decklist;
         
@@ -138,4 +136,22 @@ async function getLimitlessDecklist(decklistLink: string): Promise<Decklist> {
     }
 }
 
-export { getLimitlessTournaments, getLimitlessTournamentPlayers, getLimitlessDecklist };
+async function getLimitlessDecksFromTournament(tournamentLink: string, n_players: number): Promise<Decklist[]> {
+    try {
+        const players = await getLimitlessTournamentPlayers(tournamentLink, n_players);
+        const decklists: Decklist[] = [];
+        for (const player of players) {
+            const decklist = await getLimitlessDecklist(player.limitlessLink);
+            decklists.push(decklist);
+        }
+        console.log(decklists);
+        return decklists;
+    } catch (error) {
+        console.error('Error fetching Limitless decks from tournament:', error);
+        return [];
+    }
+}
+
+getLimitlessDecklist("/decks/list/22913")
+
+export { getLimitlessTournaments, getLimitlessTournamentPlayers, getLimitlessDecklist, getLimitlessDecksFromTournament };
