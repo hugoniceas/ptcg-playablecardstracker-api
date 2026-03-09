@@ -61,7 +61,6 @@ async function getLimitlessTournaments(): Promise<Tournament[]> {
             tournaments.push(tournament);
         })
 
-        console.log(tournaments);
         return tournaments;
 
     } catch (error) {
@@ -127,7 +126,6 @@ async function getLimitlessDecklist(decklistLink: string): Promise<Decklist> {
             deckName,
             cards
         }
-        console.log(decklist);
         return decklist;
         
     } catch (error) {
@@ -144,7 +142,6 @@ async function getLimitlessDecksFromTournament(tournamentLink: string, n_players
             const decklist = await getLimitlessDecklist(player.limitlessLink);
             decklists.push(decklist);
         }
-        console.log(decklists);
         return decklists;
     } catch (error) {
         console.error('Error fetching Limitless decks from tournament:', error);
@@ -152,6 +149,5 @@ async function getLimitlessDecksFromTournament(tournamentLink: string, n_players
     }
 }
 
-getLimitlessDecklist("/decks/list/22913")
 
 export { getLimitlessTournaments, getLimitlessTournamentPlayers, getLimitlessDecklist, getLimitlessDecksFromTournament };
